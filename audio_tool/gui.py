@@ -1,8 +1,9 @@
 import tkinter as tk
 from tkinter import messagebox, filedialog
 from tkinter import ttk
-from tts_generator import generate_audio_with_edge_tts
+import threading
 import os
+from audio_tool.tts_generator import generate_audio_with_edge_tts
 
 
 # 进度条更新函数
@@ -18,14 +19,27 @@ def generate_audio():
         messagebox.showerror("错误", "请输入文本以生成音频")
         return
 
-    # 弹出文件保存对话框
+    # 弹出文件保存对话框，获取用户选择的保存路径
     save_path = filedialog.asksaveasfilename(defaultextension=".mp3", filetypes=[("MP3 files", "*.mp3")])
-    if not save_path:
-        return  # 用户取消保存
 
+    # 如果用户取消选择，返回
+    if not save_path:
+        return
+
+        # 创建一个新的线程来执行音频合成任务，避免阻塞主线程
+    threading.Thread(target=generate_audio_in_thread, args=(text, save_path)).start()
+
+
+def generate_audio_in_thread(text, save_path):
     try:
-        # 调用生成音频的函数，传递保存路径
-        audio_path = generate_audio_with_edge_tts(text, filename=os.path.basename(save_path))
+        # 使用进度条更新函数，并传递保存路径
+        def progress_callback(progress, total):
+            update_progress_bar(progress, total, progress_bar)
+
+        # 将音频文件保存到用户选择的路径
+        audio_path = generate_audio_with_edge_tts(text, filename=os.path.basename(save_path),
+                                                  progress_callback=progress_callback)
+
         if audio_path:
             messagebox.showinfo("成功", f"音频生成成功！\n路径: {audio_path}")
         else:
