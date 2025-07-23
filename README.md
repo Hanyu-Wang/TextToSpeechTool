@@ -76,7 +76,7 @@ TextToSpeechTool/
 
 ## 📝 示例截图
 
-（可自行添加界面截图或示例音频）
+![img.png](img.png)
 
 ---
 
