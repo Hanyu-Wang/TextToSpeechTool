@@ -17,46 +17,54 @@ def insert_silence(duration_ms=300):
 def combine_audio_segments(temp_paths, output_path, pause_duration_ms=300, progress_callback=None):
     combined = AudioSegment.empty()
     silence = insert_silence(pause_duration_ms)
-    total_files = len(temp_paths)
+    total = len(temp_paths)
 
     for i, path in enumerate(temp_paths):
-        combined += AudioSegment.from_file(path, format="mp3") + silence
+        segment = AudioSegment.from_file(path, format="mp3")
+        combined += segment + silence
         if progress_callback:
-            progress_callback(i + 1, total_files)  # 更新进度
+            progress_callback(i + 1, total)
 
     combined.export(output_path, format="mp3")
 
 
-async def synthesize_sentence_edge_tts(text, voice, output_path, progress_callback=None):
+async def synthesize_sentence_edge_tts(text, voice, output_path):
     communicate = Communicate(text, voice=voice)
     await communicate.save(output_path)
-    if progress_callback:
-        progress_callback(1, 1)  # 单句完成，更新进度
 
 
-def generate_audio_with_edge_tts(text, filename=None, progress_callback=None):
+def generate_audio_with_edge_tts(text, filename=None, progress_callback=None, language="中文", output_dir=None,
+                                 full_output_path=None):
     text_hash = hashlib.md5(text.encode("utf-8")).hexdigest()
     filename = filename or f"tts_{text_hash}.mp3"
-    output_path = os.path.join(tts_output_dir, filename)
 
-    if os.path.exists(output_path):
-        print(f"[CACHE] 使用缓存音频: {filename}")
-        return output_path
+    # 最终保存路径优先使用 full_output_path
+    if full_output_path:
+        output_path = full_output_path
+    else:
+        output_dir = output_dir or tts_output_dir
+        output_path = os.path.join(output_dir, filename)
 
-    if is_dialogue(text):
-        print("[INFO] 识别为对话题，按角色合成...")
+    # 设置音色
+    if language == "英文":
+        default_voice = "en-US-GuyNeural"
+    else:
+        default_voice = "zh-CN-XiaoxiaoNeural"
+
+    # 对话处理
+    if is_dialogue(text) and language == "英文":
         lines = parse_dialogue_lines(split_dialogue_paragraph_to_lines(text))
         temp_paths = []
 
         async def synthesize_all():
-            total_lines = len(lines)
+            total = len(lines)
             for idx, (role, sentence) in enumerate(lines):
-                voice = "en-US-GuyNeural" if role == "M" else "en-US-AvaMultilingualNeural"
+                role_voice = "en-US-GuyNeural" if role == "M" else "en-US-AvaMultilingualNeural"
                 temp_file = os.path.join(tts_output_dir, f"temp_{uuid4().hex}.mp3")
-                await synthesize_sentence_edge_tts(sentence, voice, temp_file, progress_callback)
+                await synthesize_sentence_edge_tts(sentence, role_voice, temp_file)
                 temp_paths.append(temp_file)
                 if progress_callback:
-                    progress_callback(idx + 1, total_lines)  # 更新进度条
+                    progress_callback(idx + 1, total)
 
         asyncio.run(synthesize_all())
         combine_audio_segments(temp_paths, output_path, progress_callback=progress_callback)
@@ -64,21 +72,16 @@ def generate_audio_with_edge_tts(text, filename=None, progress_callback=None):
         for path in temp_paths:
             os.remove(path)
 
-        print(f"[SUCCESS] 多音色对话音频生成成功: {filename}")
         return output_path
-
     else:
-        print("[INFO] 识别为非对话题，整段合成...")
-
         async def synthesize():
-            communicate = Communicate(text, voice="en-US-GuyNeural")
+            communicate = Communicate(text, voice=default_voice)
             await communicate.save(output_path)
             if progress_callback:
-                progress_callback(1, 1)  # 更新进度条
+                progress_callback(1, 1)
 
         try:
             asyncio.run(synthesize())
-            print(f"[SUCCESS] 音频生成成功: {filename}")
             return output_path
         except Exception as e:
             print(f"[ERROR] 合成失败: {e}")
