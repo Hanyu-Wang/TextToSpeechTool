@@ -3,7 +3,7 @@ import hashlib
 import asyncio
 from uuid import uuid4
 from edge_tts import Communicate
-from pydub import AudioSegment
+from pydub import AudioSegment, effects
 from utils import is_dialogue, parse_dialogue_lines, split_dialogue_paragraph_to_lines
 
 tts_output_dir = os.path.join(os.path.dirname(__file__), "static/audio")
@@ -21,10 +21,12 @@ def combine_audio_segments(temp_paths, output_path, pause_duration_ms=300, progr
 
     for i, path in enumerate(temp_paths):
         segment = AudioSegment.from_file(path, format="mp3")
+        segment = effects.normalize(segment)  # ✅ normalize 每段
         combined += segment + silence
         if progress_callback:
             progress_callback(i + 1, total)
 
+    combined = effects.normalize(combined)  # ✅ 合并后整体 normalize
     combined.export(output_path, format="mp3")
 
 
@@ -82,6 +84,12 @@ def generate_audio_with_edge_tts(text, filename=None, progress_callback=None, la
 
         try:
             asyncio.run(synthesize())
+
+            # ✅ 非对话整段 normalize 一次
+            audio = AudioSegment.from_file(output_path, format="mp3")
+            audio = effects.normalize(audio)
+            audio.export(output_path, format="mp3")
+
             return output_path
         except Exception as e:
             print(f"[ERROR] 合成失败: {e}")
