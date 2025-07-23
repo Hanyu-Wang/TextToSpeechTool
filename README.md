@@ -61,12 +61,11 @@ python build.py
 
 ```
 TextToSpeechTool/
-├── audio_tool/              # 主模块目录
-│   ├── gui.py               # 图形界面主程序
-│   ├── tts_generator.py     # TTS合成逻辑
-│   ├── utils.py             # 工具函数：对话识别等
-│   ├── icon.ico             # 应用图标
-│   └── static/audio/        # 生成音频保存位置
+│── gui.py               # 图形界面主程序
+│── tts_generator.py     # TTS合成逻辑
+│── utils.py             # 工具函数：对话识别等
+│── icon.ico             # 应用图标
+│── static/audio/        # 生成音频保存位置
 ├── ffmpeg/                  # 可选：放置 ffmpeg.exe
 ├── build.py                 # 打包脚本（可选）
 ├── TextToSpeechTool.spec    # PyInstaller 打包配置
