@@ -76,7 +76,7 @@ TextToSpeechTool/
 
 ## 📝 示例截图
 
-![img.png](img.png)
+![screenshot.png](screenshot.png)
 
 ---
 
