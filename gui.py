@@ -12,6 +12,7 @@ def update_progress_bar(progress, total, progress_bar):
 def generate_audio():
     text = text_box.get("1.0", tk.END).strip()
     language = language_var.get()
+    rate = speed_var.get()
 
     if not text:
         messagebox.showerror("错误", "请输入文本以生成音频")
@@ -27,11 +28,11 @@ def generate_audio():
 
     threading.Thread(
         target=generate_audio_in_thread,
-        args=(text, save_path, language)
+        args=(text, save_path, language, rate)
     ).start()
 
 
-def generate_audio_in_thread(text, save_path, language):
+def generate_audio_in_thread(text, save_path, language, rate):
     try:
         def progress_callback(progress, total):
             update_progress_bar(progress, total, progress_bar)
@@ -40,7 +41,8 @@ def generate_audio_in_thread(text, save_path, language):
             text=text,
             full_output_path=save_path,
             progress_callback=progress_callback,
-            language=language
+            language=language,
+            rate=rate
         )
 
         if audio_path:
@@ -68,6 +70,18 @@ language_select = ttk.Combobox(
     state="readonly"
 )
 language_select.pack(padx=10, pady=5)
+
+tk.Label(root, text="选择语速：").pack(padx=10, pady=5)
+
+speed_var = tk.StringVar(value="default")  # 默认值为默认语速
+speed_options = ["default"] + [f"{i}%" for i in range(-30, 35, 5) if i != 0]  # 从 -30% 到 +30%，不包含 0%
+speed_select = ttk.Combobox(
+    root,
+    textvariable=speed_var,
+    values=speed_options,
+    state="readonly"
+)
+speed_select.pack(padx=10, pady=5)
 
 tk.Button(root, text="生成音频", command=generate_audio).pack(pady=10)
 
