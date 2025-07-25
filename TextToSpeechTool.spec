@@ -1,12 +1,13 @@
 # -*- mode: python ; coding: utf-8 -*-
-
+import os
 
 a = Analysis(
     ['gui.py'],
-    pathex=["."],
+    pathex=[os.path.abspath(".")],
     binaries=[],
-    datas=[('./static/audio', './static/audio'),
-    ('./ffmpeg/ffmpeg.exe', './ffmpeg/ffmpeg.exe'),
+    datas=[
+        ('./static/audio', 'static/audio'),
+        ('./ffmpeg', 'ffmpeg'),  # ✅ 打包整个 ffmpeg 文件夹
     ],
     hiddenimports=[],
     hookspath=[],
@@ -16,6 +17,7 @@ a = Analysis(
     noarchive=False,
     optimize=0,
 )
+
 pyz = PYZ(a.pure)
 
 exe = EXE(
@@ -31,7 +33,7 @@ exe = EXE(
     upx=True,
     upx_exclude=[],
     runtime_tmpdir=None,
-    console=False,
+    console=False,  #调试阶段可设为 True
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
