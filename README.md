@@ -85,7 +85,7 @@ TextToSpeechTool/
 ## 🙋 常见问题
 
 - **声音忽大忽小？**
-  - 已内置 normalize 处理，如果仍有问题请反馈音频。
+  - 已内置 combine_audio_with_ffmpeg 处理，如果仍有问题请反馈音频。
 
 - **打包失败或报错？**
   - 推荐使用 Python 3.11，避免使用 `typing` 旧包，确保 `edge-tts` 与 `aiohttp` 兼容。
