@@ -6,13 +6,21 @@ import subprocess
 import tempfile
 from uuid import uuid4
 from edge_tts import Communicate
+from pydub import AudioSegment, effects  # 这行必须在设置FFMPEG_PATH之后
 from utils import is_dialogue, parse_dialogue_lines, split_dialogue_paragraph_to_lines, get_ffmpeg_path, get_ffmpeg_cmd
 
-# 配置pydub使用的ffmpeg路径
 ffmpeg_path, ffprobe_path = get_ffmpeg_path()
-os.environ["FFMPEG_PATH"] = ffmpeg_path  # 关键：设置环境变量让pydub找到ffmpeg
+ffmpeg_dir = os.path.dirname(ffmpeg_path)
 
-from pydub import AudioSegment, effects  # 这行必须在设置FFMPEG_PATH之后
+# 设置 pydub 路径
+AudioSegment.converter = ffmpeg_path
+AudioSegment.ffmpeg = ffmpeg_path
+AudioSegment.ffprobe = ffprobe_path
+
+# ✅ 添加到 PATH，让 pydub 真正找到
+os.environ["PATH"] = ffmpeg_dir + os.pathsep + os.environ.get("PATH", "")
+
+print("✅ 设置 pydub 路径:", ffmpeg_path)
 
 # 输出目录，默认保存在 static/audio 下
 tts_output_dir = os.path.join(os.path.dirname(__file__), "static/audio")
@@ -64,8 +72,8 @@ def combine_audio_with_ffmpeg(temp_paths, output_path, pause_duration_ms=300, pr
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
-            encoding = "utf-8",
-            errors = "replace",
+            encoding="utf-8",
+            errors="replace",
             creationflags=subprocess.CREATE_NO_WINDOW
         )
     except subprocess.CalledProcessError as e:
@@ -166,8 +174,8 @@ def generate_audio_with_edge_tts(text, filename=None, progress_callback=None, la
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
-                encoding = "utf-8",
-                errors = "replace",
+                encoding="utf-8",
+                errors="replace",
                 creationflags=subprocess.CREATE_NO_WINDOW
             )
 

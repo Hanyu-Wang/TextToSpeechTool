@@ -49,11 +49,13 @@ pyinstaller TextToSpeechTool.spec
 python build.py
 ```
 
+---
 打包时会：
 
 - 包含 icon.ico 图标
 - 添加 `static/audio` 文件夹用于存放音频
 - 可选将 `ffmpeg.exe` 一并打包（需手动添加至 `.spec` 文件）
+- 如果不想显示控制台，则把.spec文件中的console值设为False，但是在合成对话的时候会闪屏。
 
 ---
 

@@ -1,14 +1,17 @@
 # -*- mode: python ; coding: utf-8 -*-
 import os
+from glob import glob
+
+datas = [
+    ('static/audio', 'static/audio'),
+    *[(src, 'ffmpeg') for src in glob('ffmpeg/*.exe')],
+]
 
 a = Analysis(
     ['gui.py'],
     pathex=[os.path.abspath(".")],
     binaries=[],
-    datas=[
-        ('./static/audio', 'static/audio'),
-        ('./ffmpeg', 'ffmpeg'),  # ✅ 打包整个 ffmpeg 文件夹
-    ],
+    datas=datas,
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
@@ -33,7 +36,7 @@ exe = EXE(
     upx=True,
     upx_exclude=[],
     runtime_tmpdir=None,
-    console=False,  #调试阶段可设为 True
+    console=True,  # 调试可改为 True
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
