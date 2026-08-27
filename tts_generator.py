@@ -57,9 +57,9 @@ VOICE_CONFIG = {
         ("en-US-JennyNeural", "Jenny（女·亲切自然）"),
         ("en-US-MichelleNeural", "Michelle（女·专业沉稳）"),
         ("en-US-GuyNeural", "Guy（男·沉稳大气）"),
-        ("en-US-DavisNeural", "Davis（男·低沉温和）"),
-        ("en-US-JasonNeural", "Jason（男·轻松随意）"),
-        ("en-US-TonyNeural", "Tony（男·年轻活力）"),
+        ("en-US-ChristopherNeural", "Christopher（男·温暖亲切）"),
+        ("en-US-EricNeural", "Eric（男·年轻活力）"),
+        ("en-US-RogerNeural", "Roger（男·专业沉稳）"),
     ],
 }
 
