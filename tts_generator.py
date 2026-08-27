@@ -34,22 +34,12 @@ RETRY_DELAY = 1.5  # 秒，每次重试递增
 # 格式: (voice_id, 显示标签)
 VOICE_CONFIG = {
     "中文": [
-        ("zh-CN-XiaoxiaoNeural", "晓晓（女·温暖亲切）"),
-        ("zh-CN-XiaoyiNeural", "晓伊（女·活泼可爱）"),
-        ("zh-CN-XiaohanNeural", "晓涵（女·成熟稳重）"),
-        ("zh-CN-XiaomengNeural", "晓梦（女·温柔梦幻）"),
-        ("zh-CN-XiaomoNeural", "晓墨（女·知性大方）"),
-        ("zh-CN-XiaoqiuNeural", "晓秋（女·深情沉稳）"),
-        ("zh-CN-XiaoruiNeural", "晓睿（女·成熟理性）"),
-        ("zh-CN-XiaoshuangNeural", "晓双（女·儿童音）"),
-        ("zh-CN-XiaoxuanNeural", "晓萱（女·年轻活泼）"),
-        ("zh-CN-XiaoyanNeural", "晓颜（女·温暖亲切）"),
-        ("zh-CN-XiaozhenNeural", "晓甄（女·热情活力）"),
+        ("zh-CN-XiaoxiaoNeural", "晓晓（女·温暖亲切·普通话）"),
+        ("zh-CN-XiaoyiNeural", "晓伊（女·活泼可爱·普通话）"),
         ("zh-CN-YunjianNeural", "云健（男·运动解说）"),
         ("zh-CN-YunxiNeural", "云希（男·少年音）"),
         ("zh-CN-YunxiaNeural", "云夏（男·少年音）"),
         ("zh-CN-YunyangNeural", "云扬（男·新闻播报）"),
-        ("zh-CN-YunzeNeural", "云泽（男·成熟沉稳）"),
     ],
     "英文": [
         ("en-US-AvaMultilingualNeural", "Ava（女·多语言）"),
@@ -65,10 +55,8 @@ VOICE_CONFIG = {
 
 # 女声音色ID集合（用于对话模式判断性别）
 FEMALE_VOICE_IDS = {
-    "zh-CN-XiaoxiaoNeural", "zh-CN-XiaoyiNeural", "zh-CN-XiaohanNeural",
-    "zh-CN-XiaomengNeural", "zh-CN-XiaomoNeural", "zh-CN-XiaoqiuNeural",
-    "zh-CN-XiaoruiNeural", "zh-CN-XiaoshuangNeural", "zh-CN-XiaoxuanNeural",
-    "zh-CN-XiaoyanNeural", "zh-CN-XiaozhenNeural",
+    "zh-CN-XiaoxiaoNeural", "zh-CN-XiaoyiNeural",
+    "zh-CN-liaoning-XiaobeiNeural", "zh-CN-shaanxi-XiaoniNeural",
     "en-US-AvaMultilingualNeural", "en-US-EmmaNeural",
     "en-US-JennyNeural", "en-US-MichelleNeural",
 }
@@ -294,8 +282,8 @@ def generate_audio_with_edge_tts(text, filename=None, progress_callback=None, la
         else:
             selected_voice = "zh-CN-YunyangNeural" if gender == "男声" else "zh-CN-XiaoxiaoNeural"
 
-    # === 英文对话文本处理 ===
-    if is_dialogue(text) and language == "英文":
+    # === 中英双语对话文本处理 ===
+    if is_dialogue(text) and language in ("中文", "英文"):
         lines = parse_dialogue_lines(split_dialogue_paragraph_to_lines(text))
         temp_paths = []
         total = len(lines)
@@ -310,6 +298,9 @@ def generate_audio_with_edge_tts(text, filename=None, progress_callback=None, la
         if status_callback:
             status_callback("正在逐句合成语音...")
 
+        # 句首哨兵前缀：英文用 ". "，中文用 "。"，给 TTS 模型热身避免开头渐强爬升
+        lead_in = "." if language == "英文" else "。"
+
         async def synthesize_all():
             for idx, (role, sentence) in enumerate(lines):
                 role_voice = dialogue_voices[role]
@@ -319,7 +310,7 @@ def generate_audio_with_edge_tts(text, filename=None, progress_callback=None, la
                 # 避免开头第一个词出现渐强爬升导致发虚/失真
                 synth_text = sentence
                 if idx == 0:
-                    synth_text = ". " + sentence
+                    synth_text = lead_in + sentence
 
                 await synthesize_sentence_edge_tts(
                     synth_text, role_voice, temp_file, rate=rate,
